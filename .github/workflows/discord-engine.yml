@@ -1,13 +1,28 @@
-name: Zlice Tech Engine (Test)
+name: Zlice Tech Engine (Auto-Channels)
 
-# This allows us to manually click a button to test the bot
-on: 
-  workflow_dispatch: 
+# Trigger this automatically when a Pull Request is opened
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
 
 jobs:
   build_channel:
     runs-on: ubuntu-latest
     steps:
+      - name: Create Dynamic Channel Name
+        id: format_name
+        run: |
+          # Grab the PR number and Title
+          TASK_ID="${{ github.event.pull_request.number }}"
+          RAW_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Clean the title (lowercase, replace spaces with dashes)
+          CLEAN_TITLE=$(echo "$RAW_TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+          
+          # Combine them into the final channel name
+          CHANNEL_NAME="$TASK_ID-$CLEAN_TITLE"
+          echo "CHANNEL_NAME=$CHANNEL_NAME" >> $GITHUB_ENV
+
       - name: Ping Discord API to Create Channel
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -16,4 +31,4 @@ jobs:
           curl -X POST "https://discord.com/api/v10/guilds/$DISCORD_GUILD_ID/channels" \
           -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
           -H "Content-Type: application/json" \
-          -d '{"name": "engine-test-1", "type": 0}'
+          -d "{\"name\": \"$CHANNEL_NAME\", \"type\": 0}"
