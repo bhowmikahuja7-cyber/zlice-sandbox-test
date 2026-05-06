@@ -1,0 +1,19 @@
+name: Zlice Tech Engine (Test)
+
+# This allows us to manually click a button to test the bot
+on: 
+  workflow_dispatch: 
+
+jobs:
+  build_channel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Discord API to Create Channel
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+        run: |
+          curl -X POST "https://discord.com/api/v10/guilds/$DISCORD_GUILD_ID/channels" \
+          -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"name": "engine-test-1", "type": 0}'
